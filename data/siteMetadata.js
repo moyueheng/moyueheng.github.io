@@ -1,9 +1,9 @@
 /** @type {import("pliny/config").PlinyConfig } */
 const siteMetadata = {
-  title: 'Vimpas.',
-  author: 'Vimpas',
-  headerTitle: 'Vimpas Blog',
-  description: 'Vimpas的个人博客',
+  title: 'Yueheng',
+  author: 'Yueheng',
+  headerTitle: 'Yueheng Blog',
+  description: 'Yueheng的个人博客',
   language: 'zh-cn',
   theme: 'system', // system, dark or light
   siteUrl: 'https://vimpas.vercel.app',
@@ -13,7 +13,7 @@ const siteMetadata = {
   mastodon: 'https://mastodon.social/@mastodonuser',
   email: 'moyueheng@gmail.com',
   github: 'https://github.com/moyueheng',
-  x: 'https://twitter.com/x',
+  // x: 'https://twitter.com/x',
   // twitter: 'https://twitter.com/Twitter',
   // facebook: 'https://facebook.com',
   // youtube: 'https://youtube.com',
