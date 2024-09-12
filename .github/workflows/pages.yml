@@ -3,55 +3,61 @@ name: GitHub Pages
 
 on:
   push:
-    branches: main
-  workflow_dispatch:
+    branches: main  # 当推送到main分支时触发
+  workflow_dispatch:  # 允许手动触发工作流
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: read  # 允许读取仓库内容
+  pages: write    # 允许写入GitHub Pages
+  id-token: write # 允许写入ID令牌
 
 concurrency:
-  group: 'pages'
-  cancel-in-progress: false
+  group: 'pages'  # 并发组名称
+  cancel-in-progress: false  # 不取消正在进行的工作流
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v4  # 检出代码
+      - uses: actions/setup-node@v4  # 设置Node.js环境
         with:
-          node-version: '20'
-          cache: yarn
+          node-version: '20'  # 使用Node.js 20版本
+          cache: yarn  # 缓存yarn依赖
+
       - id: configurepages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v5  # 配置GitHub Pages
         with:
-          enablement: true
-      - name: Restore cache
+          enablement: true  # 启用GitHub Pages
+
+      - name: Restore cache  # 恢复缓存
         uses: actions/cache@v4
         with:
-          path: .next/cache
+          path: .next/cache  # 缓存Next.js构建缓存
           key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**.[jt]s', '**.[jt]sx') }}
           restore-keys: |
             ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-
-      - run: yarn
-      - run: yarn build
-        env:
-          EXPORT: 1
-          UNOPTIMIZED: 1
-          BASE_PATH: ${{ steps.configurepages.outputs.base_path }}
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./out
 
-  # Deployment job
+      - run: yarn  # 安装依赖
+
+      - run: yarn build  # 构建项目
+        env:
+          EXPORT: 1  # 启用静态导出
+          UNOPTIMIZED: 1  # 禁用图像优化
+          # BASE_PATH: ${{ steps.configurepages.outputs.base_path }}  # 设置基础路径
+          BASE_PATH: / # 设置基础路径
+
+      - uses: actions/upload-pages-artifact@v3  # 上传构建产物
+        with:
+          path: ./out  # 指定构建输出目录
+
+  # 部署任务
   deploy:
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}  # 设置部署环境和URL
     runs-on: ubuntu-latest
-    needs: build
+    needs: build  # 依赖build任务完成
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v4  # 部署到GitHub Pages
