@@ -44,8 +44,7 @@ jobs:
         env:
           EXPORT: 1  # 启用静态导出
           UNOPTIMIZED: 1  # 禁用图像优化
-          # BASE_PATH: ${{ steps.configurepages.outputs.base_path }}  # 设置基础路径
-          BASE_PATH: / # 设置基础路径
+          BASE_PATH: ${{ steps.configurepages.outputs.base_path }}  # 设置基础路径
 
       - uses: actions/upload-pages-artifact@v3  # 上传构建产物
         with:
