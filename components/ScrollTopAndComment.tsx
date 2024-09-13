@@ -1,5 +1,5 @@
 'use client'
-
+// 主要提供了两个功能：滚动到页面顶部和滚动到评论区
 import siteMetadata from '@/data/siteMetadata'
 import { useEffect, useState } from 'react'
 
