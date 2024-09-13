@@ -1,0 +1,84 @@
+---
+title: 'blinker 和 celery 的区别'
+date: '2024-09-13'
+tags: ['Celery', 'Signal', '异步任务', '事件驱动']
+draft: false
+summary: 
+---
+
+
+## blinker和celery的区别
+
+**功能和用途的对比**
+
+> 其实就是同步和异步的区别
+
+| 特性          | Blinker                                    | Celery                                     |
+|---------------|-------------------------------------------|-------------------------------------------|
+| 主要功能      | 信号和事件处理                           | 异步任务队列和调度                        |
+| 适用场景      | 事件驱动编程，组件间通信                 | 处理耗时任务，定期任务调度                |
+| 复杂性        | 简单，易于理解和实现                     | 较复杂，涉及任务队列、消息代理等          |
+| 任务执行方式  | 通过信号触发事件                         | 通过任务队列异步执行                      |
+| 依赖          | 无特定依赖                                | 依赖于消息代理（如RabbitMQ、Redis等）    |
+
+**使用场景**
+
+- **Blinker**适用于事件驱动编程和组件间通信的场景，例如：
+  - 在Flask中解耦应用程序组件
+  - 请求到来之前和请求结束之后的信号处理
+  - 自定义信号处理
+
+- **Celery**适用于处理耗时任务和定期任务调度的场景，例如：
+  - 异步任务：发送邮件、推送消息等
+  - 定时任务：每天定时执行某些操作
+  - 处理大量数据的分布式任务
+
+**工作方式的不同**
+
+- **Celery**是异步的，通过消息机制进行通信，单独开一个线程去执行任务，不影响主程序的执行。适用于一些耗时任务，如发送短信、邮件等。
+
+- **Blinker**是同步的，在主程序中直接触发事件，事件处理函数会在主程序中执行。适用于组件间的通信和事件处理。
+
+**使用示例**
+
+- **Blinker示例**：
+  ```python
+  from blinker import signal
+
+  started = signal('round-started')
+
+  def each(round):
+      print(f"Round {round}")
+
+  started.connect(each)
+
+  for round in range(1, 4):
+      started.send(round)
+  ```
+
+- **Celery示例**：
+  ```python
+  from celery import Celery
+
+  app = Celery('tasks', broker='redis://localhost:6379/0')
+
+  @app.task
+  def add(x, y):
+      return x + y
+
+  result = add.delay(4, 4)  # 异步执行
+  ```
+
+**总结**
+
+总的来说，**Blinker**主要用于事件通知和信号处理，适合需要组件间通信的场景；而 **Celery** 则是一个功能强大的异步任务处理框架，适合需要处理长时间运行任务的Web应用程序。选择哪个工具取决于具体的应用需求和场景。[1][3][8]
+
+Citations:
+[1] https://www.cnblogs.com/tianzhh/articles/13673794.html
+[2] https://www.w3cschool.cn/article/74101304.html
+[3] https://developer.baidu.com/article/details/2951344
+[4] https://juejin.cn/post/6984986745456721950
+[5] https://www.cnblogs.com/traditional/p/11788756.html
+[6] https://www.cnblogs.com/goldsunshine/p/15426970.html
+[7] https://cloud.tencent.com/developer/article/1904772
+[8] https://blog.csdn.net/qq_39253370/article/details/116537069
