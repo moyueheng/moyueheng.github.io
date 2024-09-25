@@ -1,0 +1,37 @@
+---
+title: '如何让大模型输出结构化数据技巧'
+date: '2024-09-24'
+tags: []
+draft: true
+summary: 
+---
+
+## 1. 输入即输出
+> 输入就用json输入
+
+例如: 我下面的例子进行语义分割
+
+```
+{
+    "task": "Your task is to perform semantic segmentation on the given <text>.",
+    "requirement": [
+        "Each segment should be no more than <chunk_size> characters, with <chunk_overlap> characters overlap between adjacent segments.",
+        "The segments should be able to cover the entire text without missing any information."
+    ],
+    "restriction": "Give a similar <format> JSON response",
+    "text": "{text}",
+    "format": [
+        {
+            "summary": "<summary>",
+            "text": "<text>"
+        },
+        {
+            "summary": "<summary>",
+            "text": "<text>"
+        }
+    ]
+}
+```
+
+## 2. 给出事例
+

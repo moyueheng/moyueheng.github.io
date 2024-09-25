@@ -1,0 +1,409 @@
+---
+title: 'graph rag源码分析'
+date: '2024-09-21'
+tags: []
+draft: true
+summary: 
+---
+
+根据提供的代码片段和文件结构，我可以对您的项目进行以下分析：
+
+
+
+2. 主要组件：
+
+   a. 实体提取：
+   
+```43:183:graphrag/index/verbs/entities/extraction/entity_extract.py
+@verb(name="entity_extract")
+async def entity_extract(
+    input: VerbInput,
+    cache: PipelineCache,
+    callbacks: VerbCallbacks,
+    column: str,
+    id_column: str,
+    to: str,
+    strategy: dict[str, Any] | None,
+    graph_to: str | None = None,
+    async_mode: AsyncType = AsyncType.AsyncIO,
+    entity_types=DEFAULT_ENTITY_TYPES,
+    **kwargs,
+) -> TableContainer:
+    ...
+    to_result = []
+    graph_to_result = []
+    for result in results:
+        if result:
+            to_result.append(result[0])
+            graph_to_result.append(result[1])
+        else:
+            to_result.append(None)
+            graph_to_result.append(None)
+
+    output[to] = to_result
+    if graph_to is not None:
+        output[graph_to] = graph_to_result
+
+    return TableContainer(table=output.reset_index(drop=True))
+```
+
+   这个模块负责从文本中提取实体。它使用了大语言模型（LLM）来执行提取任务。
+
+   b. 图形聚类：
+   
+```22:113:graphrag/index/verbs/graph/clustering/cluster_graph.py
+@verb(name="cluster_graph")
+def cluster_graph(
+    input: VerbInput,
+    callbacks: VerbCallbacks,
+    strategy: dict[str, Any],
+    column: str,
+    to: str,
+    level_to: str | None = None,
+    **_kwargs,
+) -> TableContainer:
+    ...
+    # 初始化聚类图列
+    output_df[to] = [None] * len(output_df)
+
+    num_total = len(output_df)
+
+    # 为此次运行创建种子（如果未提供）
+    seed = strategy.get("seed", Random().randint(0, 0xFFFFFFFF))  # noqa S311
+
+    # 遍历每一行
+    graph_level_pairs_column: list[list[tuple[int, str]]] = []
+    for _, row in progress_iterable(
+        output_df.iterrows(), callbacks.progress, num_total
+    ):
+        levels = row[level_to]
+        graph_level_pairs: list[tuple[int, str]] = []
+
+        # 对每个层级，获取图并添加到列表中
+        for level in levels:
+            graph = "\n".join(
+                nx.generate_graphml(
+                    apply_clustering(
+                        cast(str, row[column]),
+                        cast(Communities, row[community_map_to]),
+                        level,
+                        seed=seed,
+                    )
+                )
+            )
+            graph_level_pairs.append((level, graph))
+        graph_level_pairs_column.append(graph_level_pairs)
+    output_df[to] = graph_level_pairs_column
+
+    # 将(level, graph)对列表展开为单独的行
+    output_df = output_df.explode(to, ignore_index=True)
+
+    # 将(level, graph)对分割为单独的列
+    # TODO: 可能有更好的方法来做这个, FIX: 报错了, ValueError: Columns must be same length as key
+    output_df[[level_to, to]] = pd.DataFrame(
+        output_df[to].tolist(), index=output_df.index
+    )
+```
+
+   这部分代码处理图形聚类，可能用于识别实体间的关系模式。
+
+   c. 本地搜索引擎：
+   
+```370:372:examples_notebooks/community_contrib/yfiles-jupyter-graphs/graph-visualization.ipynb
+    "search_engine = LocalSearch(\n",
+    "    llm=llm,\n",
+    "    context_builder=context_builder,\n",
+```
+
+   项目包含一个本地搜索引擎，可能用于在提取的实体和关系中进行查询。
+
+3. 数据处理：
+   项目大量使用 Pandas 进行数据处理和分析。例如：
+   
+```51:57:examples_notebooks/test_ollama.ipynb
+    "import pandas as pd\n",
+    "\n",
+    "extracted_entities = pd.read_parquet('/AI2024/moyueheng/RAG/graphrag/ragtest/output/create_base_extracted_entities.parquet')\n",
+    "\n",
+    "text_units = pd.read_parquet('/AI2024/moyueheng/RAG/graphrag/ragtest/output/create_base_text_units.parquet')\n",
+    "\n",
+    "summarized_entities = pd.read_parquet('/AI2024/moyueheng/RAG/graphrag/ragtest/output/create_summarized_entities.parquet')"
+```
+
+
+4. 测试框架：
+   项目使用 unittest 进行单元测试，特别是针对实体提取功能：
+   
+```14:209:tests/unit/indexing/verbs/entities/extraction/strategies/graph_intelligence/test_gi_entity_extraction.py
+class TestRunChain(unittest.IsolatedAsyncioTestCase):
+    async def test_run_extract_entities_single_document_correct_entities_returned(self):
+        results = await run_extract_entities(
+            docs=[Document("test_text", "1")],
+            entity_types=["person"],
+            reporter=None,
+            args={
+                "prechunked": True,
+                "max_gleanings": 0,
+                "summarize_descriptions": False,
+            },
+            llm=create_mock_llm(
+                responses=[
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_2<|>COMPANY<|>TEST_ENTITY_2 owns TEST_ENTITY_1 and also shares an address with TEST_ENTITY_1)
+                    ##
+                    ("entity"<|>TEST_ENTITY_3<|>PERSON<|>TEST_ENTITY_3 is director of TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_2<|>TEST_ENTITY_1 and TEST_ENTITY_2 are related because TEST_ENTITY_1 is 100% owned by TEST_ENTITY_2 and the two companies also share the same address)<|>2)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_3<|>TEST_ENTITY_1 and TEST_ENTITY_3 are related because TEST_ENTITY_3 is director of TEST_ENTITY_1<|>1))
+                    """.strip()
+                ]
+            ),
+        )
+    ...
+    async def test_run_extract_entities_multiple_documents_correct_entities_returned(
+        self,
+    ):
+        results = await run_extract_entities(
+            docs=[Document("text_1", "1"), Document("text_2", "2")],
+            entity_types=["person"],
+            reporter=None,
+            args={
+                "prechunked": True,
+                "max_gleanings": 0,
+                "summarize_descriptions": False,
+            },
+            llm=create_mock_llm(
+                responses=[
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_2<|>COMPANY<|>TEST_ENTITY_2 owns TEST_ENTITY_1 and also shares an address with TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_2<|>TEST_ENTITY_1 and TEST_ENTITY_2 are related because TEST_ENTITY_1 is 100% owned by TEST_ENTITY_2 and the two companies also share the same address)<|>2)
+                    ##
+                    """.strip(),
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_3<|>PERSON<|>TEST_ENTITY_3 is director of TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_3<|>TEST_ENTITY_1 and TEST_ENTITY_3 are related because TEST_ENTITY_3 is director of TEST_ENTITY_1<|>1))
+                    """.strip(),
+                ]
+            ),
+        )
+    ...
+    async def test_run_extract_entities_multiple_documents_correct_edges_returned(self):
+        results = await run_extract_entities(
+            docs=[Document("text_1", "1"), Document("text_2", "2")],
+            entity_types=["person"],
+            reporter=None,
+            args={
+                "prechunked": True,
+                "max_gleanings": 0,
+                "summarize_descriptions": False,
+            },
+            llm=create_mock_llm(
+                responses=[
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_2<|>COMPANY<|>TEST_ENTITY_2 owns TEST_ENTITY_1 and also shares an address with TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_2<|>TEST_ENTITY_1 and TEST_ENTITY_2 are related because TEST_ENTITY_1 is 100% owned by TEST_ENTITY_2 and the two companies also share the same address)<|>2)
+                    ##
+                    """.strip(),
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_3<|>PERSON<|>TEST_ENTITY_3 is director of TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_3<|>TEST_ENTITY_1 and TEST_ENTITY_3 are related because TEST_ENTITY_3 is director of TEST_ENTITY_1<|>1))
+                    """.strip(),
+                ]
+            ),
+        )
+    ...
+    async def test_run_extract_entities_multiple_documents_correct_entity_source_ids_mapped(
+        self,
+    ):
+        results = await run_extract_entities(
+            docs=[Document("text_1", "1"), Document("text_2", "2")],
+            entity_types=["person"],
+            reporter=None,
+            args={
+                "prechunked": True,
+                "max_gleanings": 0,
+                "summarize_descriptions": False,
+            },
+            llm=create_mock_llm(
+                responses=[
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_2<|>COMPANY<|>TEST_ENTITY_2 owns TEST_ENTITY_1 and also shares an address with TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_2<|>TEST_ENTITY_1 and TEST_ENTITY_2 are related because TEST_ENTITY_1 is 100% owned by TEST_ENTITY_2 and the two companies also share the same address)<|>2)
+                    ##
+                    """.strip(),
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_3<|>PERSON<|>TEST_ENTITY_3 is director of TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_3<|>TEST_ENTITY_1 and TEST_ENTITY_3 are related because TEST_ENTITY_3 is director of TEST_ENTITY_1<|>1))
+                    """.strip(),
+                ]
+            ),
+        )
+    ...
+    async def test_run_extract_entities_multiple_documents_correct_edge_source_ids_mapped(
+        self,
+    ):
+        results = await run_extract_entities(
+            docs=[Document("text_1", "1"), Document("text_2", "2")],
+            entity_types=["person"],
+            reporter=None,
+            args={
+                "prechunked": True,
+                "max_gleanings": 0,
+                "summarize_descriptions": False,
+            },
+            llm=create_mock_llm(
+                responses=[
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_2<|>COMPANY<|>TEST_ENTITY_2 owns TEST_ENTITY_1 and also shares an address with TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_2<|>TEST_ENTITY_1 and TEST_ENTITY_2 are related because TEST_ENTITY_1 is 100% owned by TEST_ENTITY_2 and the two companies also share the same address)<|>2)
+                    ##
+                    """.strip(),
+                    """
+                    ("entity"<|>TEST_ENTITY_1<|>COMPANY<|>TEST_ENTITY_1 is a test company)
+                    ##
+                    ("entity"<|>TEST_ENTITY_3<|>PERSON<|>TEST_ENTITY_3 is director of TEST_ENTITY_1)
+                    ##
+                    ("relationship"<|>TEST_ENTITY_1<|>TEST_ENTITY_3<|>TEST_ENTITY_1 and TEST_ENTITY_3 are related because TEST_ENTITY_3 is director of TEST_ENTITY_1<|>1))
+                    """.strip(),
+                ]
+            ),
+        )
+```
+
+
+5. 文档：
+   项目包含 Markdown 格式的文档，解释了数据流程和提示工程：
+   
+```102:111:docsite/posts/index/1-default_dataflow.md
+
+In this first step of graph extraction, we process each text-unit in order to extract entities and relationships out of the raw text using the LLM. The output of this step is a subgraph-per-TextUnit containing a list of **entities** with a _name_, _type_, and _description_, and a list of **relationships** with a _source_, _target_, and _description_.
+
+These subgraphs are merged together - any entities with the same _name_ and _type_ are merged by creating an array of their descriptions. Similarly, any relationships with the same _source_ and _target_ are merged by creating an array of their descriptions.
+
+### Entity & Relationship Summarization
+
+Now that we have a graph of entities and relationships, each with a list of descriptions, we can summarize these lists into a single description per entity and relationship. This is done by asking the LLM for a short summary that captures all of the distinct information from each description. This allows all of our entities and relationships to have a single concise description.
+
+### Claim Extraction & Emission
+```
+
+
+6. 社区贡献：
+   项目似乎欢迎社区贡献，包括与 Neo4j 和 yFiles 等工具的集成：
+   
+```417:421:examples_notebooks/community_contrib/neo4j/graphrag_import_neo4j_cypher.ipynb
+    "text_df = pd.read_parquet(\n",
+    "    f\"{GRAPHRAG_FOLDER}/create_final_text_units.parquet\",\n",
+    "    columns=[\"id\", \"text\", \"n_tokens\", \"document_ids\"],\n",
+    ")\n",
+    "text_df.head(2)"
+```
+
+
+7. 提示工程：
+   项目使用提示工程来优化大语言模型的输出：
+   
+```20:40:docsite/posts/prompt_tuning/manual_prompt_tuning.md
+
+- **{input_text}** - The input text to be processed.
+- **{entity_types}** - A list of entity types
+- **{tuple_delimiter}** - A delimiter for separating values within a tuple. A single tuple is used to represent an individual entity or relationship.
+- **{record_delimiter}** - A delimiter for separating tuple instances.
+- **{completion_delimiter}** - An indicator for when generation is complete.
+
+## Summarize Entity/Relationship Descriptions
+
+[Prompt Source](http://github.com/microsoft/graphrag/blob/main/graphrag/index/graph/extractors/summarize/prompts.py)
+
+### Tokens (values provided by extractor)
+
+- **{entity_name}** - The name of the entity or the source/target pair of the relationship.
+- **{description_list}** - A list of descriptions for the entity or relationship.
+
+## Claim Extraction
+
+[Prompt Source](http://github.com/microsoft/graphrag/blob/main/graphrag/index/graph/extractors/claims/prompts.py)
+
+### Tokens (values provided by extractor)
+```
+
+
+8. 异步处理：
+   项目使用 Python 的异步特性来处理并发任务：
+   
+```44:119:graphrag/index/verbs/entities/extraction/strategies/graph_intelligence/run_graph_intelligence.py
+async def run_extract_entities(
+    llm: CompletionLLM,
+    docs: list[Document],
+    entity_types: EntityTypes,
+    reporter: VerbCallbacks | None,
+    args: StrategyConfig,
+) -> EntityExtractionResult:
+    ...
+    text_list = [doc.text.strip() for doc in docs]
+
+    # If it's not pre-chunked, then re-chunk the input
+    if not prechunked:
+        text_list = text_splitter.split_text("\n".join(text_list))
+
+    results = await extractor(
+        list(text_list),
+        {
+            "entity_types": entity_types,
+            "tuple_delimiter": tuple_delimiter,
+            "record_delimiter": record_delimiter,
+            "completion_delimiter": completion_delimiter,
+        },
+    )
+
+    graph = results.output
+    # Map the "source_id" back to the "id" field
+    for _, node in graph.nodes(data=True):  # type: ignore
+        if node is not None:
+            node["source_id"] = ",".join(
+                docs[int(id)].id for id in node["source_id"].split(",")
+            )
+
+    for _, _, edge in graph.edges(data=True):  # type: ignore
+        if edge is not None:
+            edge["source_id"] = ",".join(
+                docs[int(id)].id for id in edge["source_id"].split(",")
+            )
+
+    entities = [
+        ({"name": item[0], **(item[1] or {})})
+        for item in graph.nodes(data=True)
+        if item is not None
+    ]
+
+    graph_data = "".join(nx.generate_graphml(graph))
+    return EntityExtractionResult(entities, graph_data)
+```
+
+
+总结：
+这个项目是一个复杂的系统，专注于从文本中提取实体和关系，构建和分析图形结构。它结合了自然语言处理、机器学习和图形理论，可能用于知识图谱构建、信息检索或复杂系统分析。项目结构良好，包含核心功能模块、测试、文档和社区贡献部分，显示出良好的软件工程实践。

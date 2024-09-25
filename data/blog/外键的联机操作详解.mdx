@@ -1,0 +1,59 @@
+---
+title: '外键的联机操作详解'
+date: '2024-09-25'
+tags: []
+draft: false
+summary: 
+---
+
+在关系型数据库中，外键的级联操作用于定义当父表中的数据被更新或删除时，子表中的相关数据应如何处理。MySQL支持几种不同的级联操作，每种操作的逻辑如下：
+
+## 外键的默认级联操作
+- **RESTRICT/NO ACTION**：这是外键的默认行为。在父表中进行更新或删除操作时，如果子表中存在相关记录，则不允许这些操作。这两者在MySQL中表现相同，都是立即检查外键约束，以确保数据的完整性[1][4].
+
+## 各个级联操作逻辑
+
+- **CASCADE**：
+  - **级联更新**：当父表中的记录被更新时，子表中所有引用该记录的外键值也会自动更新。
+  - **级联删除**：当父表中的记录被删除时，子表中所有引用该记录的行也会被自动删除。例如，删除一个部门时，所有属于该部门的员工记录也会被删除[3][4].
+
+- **SET NULL**：
+  - 当父表中的记录被更新或删除时，将子表中相关外键列的值设置为NULL。使用此选项要求子表中的外键列必须允许NULL值。例如，如果一个产品被删除，可以将所有订单中的该产品ID设置为NULL[1][5].
+
+- **SET DEFAULT**：
+  - 在父表有变更时，将子表的外键列设置为一个预定义的默认值。然而，在MySQL的InnoDB引擎中，这种设置通常不被识别和使用[1].
+
+- **RESTRICT/NO ACTION**：
+  - 不允许对父表进行更新或删除操作，如果子表中存在引用该记录的数据。这种约束是立即执行的，以防止数据不一致[1][4].
+
+### 举例说明
+
+假设有两个表：`departments`（部门）和 `employees`（员工）。`employees` 表中的 `department_id` 是一个外键，引用 `departments` 表中的 `id`。
+
+```sql
+CREATE TABLE departments (
+    id INT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+CREATE TABLE employees (
+    id INT PRIMARY KEY,
+    name VARCHAR(100),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES departments(id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+);
+```
+
+在这个例子中，如果 `departments` 表中的某个部门被删除，那么所有属于该部门的员工记录也会自动删除（因为使用了 `ON DELETE CASCADE`）。如果某个部门的 `id` 被更新，那么 `employees` 表中所有引用该部门的员工记录也会自动更新其 `department_id`（因为使用了 `ON UPDATE CASCADE`）[3][6]. 
+
+通过这些级联操作，可以有效地管理和维护数据库中不同表之间的数据一致性和完整性。
+
+Citations:
+[1] https://www.cnblogs.com/mithrandirw/p/8930443.html
+[2] https://juejin.cn/post/7338778403552690210
+[3] https://blog.csdn.net/m0_67499084/article/details/124806332
+[4] https://cn.pingcap.com/article/post/695.html
+[5] https://opensource.actionsky.com/20200527-mysql/
+[6] https://cloud.baidu.com/article/2859663
