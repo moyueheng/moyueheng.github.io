@@ -1,0 +1,496 @@
+---
+title: 'pydantic的使用场景'
+date: '2024-09-27'
+tags: []
+draft: false
+summary: 
+---
+
+
+# pydantic是什么, 有哪些使用场景
+
+Pydantic是一个用于数据验证和解析的Python库。它提供了一种简单而强大的方式来定义数据模型,并自动执行数据验证和类型转换。以下是对Pydantic的概述和常见使用场景:
+
+## 什么是Pydantic
+
+Pydantic是一个基于Python类型注解的数据验证库。它的主要特点包括:
+
+- 使用Python的类型注解定义数据模型
+- 自动执行数据验证,确保数据符合预期的类型和约束
+- 提供友好的错误信息,方便定位和修复数据问题
+- 支持自动转换数据类型,如将字符串转为整数
+- 可以生成模型定义的JSON Schema
+- 与IDE和类型检查工具配合良好[1][2]
+
+## Pydantic的使用场景
+
+Pydantic在需要对结构化数据进行验证和解析的场景下非常有用,例如:
+
+**API请求和响应解析**: 在Web开发中,可以用Pydantic定义API的请求和响应模型,自动验证和解析客户端发送的数据。这在FastAPI等基于Pydantic的Web框架中得到广泛应用。[2][3]
+
+**配置管理**: 可以使用Pydantic定义应用程序的配置模型,从环境变量、配置文件等来源加载和验证配置数据。[1]
+
+**数据清洗和验证**: 对于从外部源(如CSV文件、数据库)获取的数据,Pydantic可以进行清洗和验证,确保数据的一致性和正确性。[6]
+
+**数据序列化和反序列化**: Pydantic模型可以方便地将数据对象序列化为JSON等格式,或将JSON解析为Python对象。[7]
+
+总之,只要涉及结构化数据的定义、验证和处理,Pydantic都是一个强大而灵活的工具。它尤其适合在开发Web API、数据管道、配置系统等时使用,可以大大减少数据相关的错误和冗余代码。
+
+Citations:
+[1] https://docs.pydantic.dev/latest/
+[2] https://www.51cto.com/article/768942.html
+[3] https://www.cnblogs.com/renjie1105/p/17896336.html
+[4] https://www.runoob.com/fastapi/fastapi-pydantic.html
+[5] https://xie.infoq.cn/article/946f673d8a7ba0687c4ce3925
+[6] https://blog.csdn.net/footless_bird/article/details/134183693
+[7] https://juejin.cn/post/7156965302633562149
+
+
+# API请求和响应解析中pydantic的最佳实践
+在 API 请求和响应解析中,Pydantic 的最佳实践包括:
+
+## 定义请求和响应模型
+
+使用 Pydantic 的 BaseModel 定义请求体和响应体的数据结构和类型。这样可以清晰地描述 API 的输入输出,并利用 Pydantic 的自动验证和序列化功能。例如:
+
+```python
+from pydantic import BaseModel
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: str
+    full_name: str | None = None
+
+class UserOut(BaseModel):
+    username: str 
+    email: str
+    full_name: str | None = None
+```
+
+其中 UserIn 定义了创建用户的请求体结构,UserOut 定义了返回的用户数据结构,省略了敏感的 password 字段[1]。
+
+## 在路径操作中使用 Pydantic 模型
+
+在 FastAPI 的路径操作函数中,将 Pydantic 模型作为参数使用,FastAPI 会自动进行请求体的解析和验证,并将其转换为 Pydantic 模型实例。同时指定响应模型,使响应数据自动序列化。例如:
+
+```python
+@app.post("/user", response_model=UserOut) 
+def create_user(user: UserIn):
+    # 此处 user 已经是 UserIn 的实例
+    # ... 创建用户的逻辑
+    return user
+```
+
+FastAPI 会自动验证请求体是否符合 UserIn 的定义,并将验证通过的数据注入到路径操作函数中。响应数据会按照 UserOut 的定义自动过滤和序列化[1]。
+
+## 利用 Pydantic 的验证功能
+
+充分利用 Pydantic 提供的各种验证装饰器对字段进行校验,如 @validator 等。必要时可以编写自定义验证逻辑。将验证逻辑集中在 Pydantic 模型中,而不是在路径操作的代码里。例如:
+
+```python
+from pydantic import BaseModel, EmailStr, validator
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    age: int
+
+    @validator('age') 
+    def check_age(cls, v):
+        if v < 0 or v > 120:
+            raise ValueError('age must between 0 and 120')
+        return v
+```
+
+这里利用 EmailStr 验证 email 格式,并通过 @validator 装饰器检查 age 字段的取值范围[2]。
+
+## 恰当使用 response_model_exclude_unset 
+
+如果响应模型中定义了很多可选字段,而实际只返回了部分字段,设置 response_model_exclude_unset=True 可以自动过滤掉那些没有设置值的可选字段,使响应更简洁[3]。
+
+```python
+@app.get('/users/{username}', response_model=UserOut, response_model_exclude_unset=True)
+def get_user(username: str):
+    # ... 获取用户数据,可能部分可选字段没有值
+    return user    
+```
+
+
+Citations:
+[1] https://fastapi.tiangolo.com/tutorial/response-model/
+[2] https://www.tutorialspoint.com/fastapi/fastapi_pydantic.htm
+[3] https://www.getorchestra.io/guides/pydantic-response-models-in-fastapi-a-detailed-tutorial
+[4] https://data-ai.theodo.com/blog-technique/fastapi-pydantic-powerful-duo
+[5] https://www.cnblogs.com/renjie1105/p/17896336.html
+[6] https://www.runoob.com/fastapi/fastapi-pydantic.html
+[7] https://stackoverflow.com/questions/77854089/how-to-unify-the-response-format-in-fastapi-while-preserving-pydantic-data-model
+[8] https://engineering.projectagora.com/an-introduction-to-pydantic-the-powerful-data-validation-for-your-rest-apis-a6edfb46b0e8?gi=7536ed76e8cc
+[9] https://www.reddit.com/r/Python/comments/16xnhim/what_problems_does_pydantic_solves_and_how_should/
+
+# 配置管理中pydantic的最佳实践
+在配置管理中,Pydantic可以帮助我们以一种结构化和类型安全的方式定义和管理应用程序的配置。下面通过一个具体的例子来说明在配置管理中使用Pydantic的最佳实践。
+
+假设我们有一个名为`my_app`的应用程序,它需要从环境变量和配置文件中读取一些配置。我们可以按照以下步骤使用Pydantic:
+
+## 第一步:定义配置模型
+
+首先,我们使用Pydantic的`BaseSettings`类定义一个配置模型:
+
+```python
+from pydantic import BaseSettings
+
+class AppSettings(BaseSettings):
+    app_name: str = "My App"
+    admin_email: str
+    items_per_page: int = 10
+    db_url: str
+
+    class Config:
+        env_file = ".env"
+```
+
+这里我们定义了一个名为`AppSettings`的配置类,它继承自`BaseSettings`。我们在类中定义了一些配置字段,如`app_name`、`admin_email`等。其中`app_name`有一个默认值,`items_per_page`也有一个默认值,而`admin_email`和`db_url`是必需的,没有提供默认值。
+
+在`Config`子类中,我们指定了从名为`.env`的文件中读取环境变量。
+
+## 第二步:创建配置实例
+
+有了配置模型后,我们可以很容易地创建一个配置实例:
+
+```python
+settings = AppSettings()
+```
+
+当我们创建`AppSettings`实例时,Pydantic会自动从环境变量和`.env`文件中读取相应的值,并将其赋给对应的字段。如果必需的字段没有被提供,Pydantic会抛出一个验证错误。
+
+## 第三步:在应用程序中使用配置
+
+现在我们可以在应用程序的各个部分访问配置:
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+async def read_root():
+    return {"app_name": settings.app_name}
+
+@app.get("/items")
+async def read_items():
+    return {"items": [...], "per_page": settings.items_per_page}
+```
+
+在这个例子中,我们在FastAPI的路径操作函数中直接使用`settings`对象访问配置值。
+
+## 最佳实践总结
+
+1. 使用Pydantic的`BaseSettings`类定义配置模型,明确指定每个配置项的类型和默认值(如果有的话)。
+2. 在`Config`子类中指定配置的来源,如`.env`文件、环境变量前缀等。
+3. 创建配置实例,让Pydantic自动从指定的源加载配置值。
+4. 在应用程序中直接使用配置实例访问配置值,享受类型安全和自动验证的好处。
+5. 将配置模型放在一个单独的`config.py`或`settings.py`文件中,以便在不同的模块中导入和使用。
+
+通过使用Pydantic进行配置管理,我们可以获得以下好处:
+
+- 配置定义清晰明确,易于理解和维护
+- 自动从多个源(如环境变量、文件)加载配置
+- 类型安全,减少运行时错误
+- 方便地提供配置的默认值
+- 集中管理和验证配置
+
+# 数据清洗和验证中pydantic的最佳实践
+
+在数据清洗和验证中,Pydantic可以帮助我们以一种简洁和高效的方式定义数据模型,并自动进行数据验证和转换。下面通过一个具体的例子来说明在数据清洗和验证中使用Pydantic的最佳实践。
+
+假设我们有一个用户数据集,其中包含用户的姓名、年龄、电子邮件和角色信息。我们需要对这些数据进行清洗和验证,以确保数据的正确性和一致性。
+
+## 第一步:定义数据模型
+
+首先,我们使用Pydantic定义一个用户数据模型:
+
+```python
+from pydantic import BaseModel, EmailStr, validator
+
+class User(BaseModel):
+    name: str
+    age: int
+    email: EmailStr
+    role: str
+
+    @validator('age')
+    def validate_age(cls, v):
+        if v < 0 or v > 120:
+            raise ValueError('Age must be between 0 and 120')
+        return v
+
+    @validator('role')
+    def validate_role(cls, v):
+        allowed_roles = ['admin', 'user', 'guest']
+        if v not in allowed_roles:
+            raise ValueError(f'Role must be one of: {", ".join(allowed_roles)}')
+        return v
+```
+
+在这个模型中,我们定义了以下字段:
+
+- name:用户姓名,字符串类型
+- age:用户年龄,整数类型
+- email:用户电子邮件,使用EmailStr验证电子邮件格式
+- role:用户角色,字符串类型
+
+我们还定义了两个验证器:
+
+- validate_age:检查年龄是否在0到120之间
+- validate_role:检查角色是否为允许的值('admin', 'user', 'guest')
+
+## 第二步:加载和验证数据
+
+假设我们从CSV文件中读取用户数据,我们可以使用以下代码对数据进行清洗和验证:
+
+```python
+import csv
+from pydantic import ValidationError
+
+with open('users.csv', 'r') as file:
+    reader = csv.DictReader(file)
+    for row in reader:
+        try:
+            user = User(**row)
+            print(f'Valid user: {user.name}')
+        except ValidationError as e:
+            print(f'Invalid user: {row}')
+            print(f'Errors: {e}')
+```
+
+在这段代码中,我们逐行读取CSV文件,并尝试使用每一行的数据创建User实例。如果数据有效,我们打印出用户姓名;如果数据无效,我们打印出错误信息。
+
+## 最佳实践总结
+
+1. 使用Pydantic的BaseModel定义数据模型,明确指定每个字段的类型和约束。
+2. 使用Pydantic提供的字段类型(如EmailStr)进行内置的数据验证。
+3. 使用@validator装饰器定义自定义的验证逻辑,对字段值进行更细粒度的检查。
+4. 在加载数据时,直接使用Pydantic模型进行实例化,让Pydantic自动进行数据验证和类型转换。
+5. 使用try...except块捕获ValidationError,以便在数据无效时提供有意义的错误信息。
+
+
+这种方式使得数据清洗和验证变得更加简单和可靠,特别适合在处理外部数据源或不可信数据时使用。
+
+# 数据序列化和反序列化中pydantic的最佳实践
+在数据序列化和反序列化中,Pydantic可以帮助我们方便地将复杂的数据结构转换为可以存储或传输的格式(如JSON),以及将这些格式的数据转换回Python对象。下面通过一个具体的例子来说明在数据序列化和反序列化中使用Pydantic的最佳实践。
+
+假设我们有一个博客应用,需要将博客文章数据序列化为JSON格式,以便在API中返回给客户端。同时,我们也需要将客户端发送的JSON数据反序列化为Python对象,以便在应用程序中处理。
+
+## 第一步:定义数据模型
+
+首先,我们使用Pydantic定义一个表示博客文章的数据模型:
+
+```python
+from datetime import datetime
+from pydantic import BaseModel, Field
+
+class Author(BaseModel):
+    name: str
+    email: str
+
+class Article(BaseModel):
+    title: str
+    content: str
+    author: Author
+    published_at: datetime = Field(default_factory=datetime.now)
+    
+    class Config:
+        json_encoders = {
+            datetime: lambda v: v.isoformat()
+        }
+```
+
+在这个模型中,我们定义了以下字段:
+
+- title:文章标题,字符串类型
+- content:文章内容,字符串类型
+- author:文章作者,使用另一个Pydantic模型Author表示
+- published_at:文章发布时间,datetime类型,默认为当前时间
+
+我们还在Config内部类中定义了一个json_encoders属性,指定了如何将datetime对象序列化为JSON。这里我们使用了ISO 8601格式的字符串表示。
+
+## 第二步:序列化数据
+
+现在,我们可以使用这个模型来创建文章对象并将其序列化为JSON:
+
+```python
+article = Article(
+    title='My First Article',
+    content='Hello, World!',
+    author=Author(name='John Doe', email='john@example.com')
+)
+
+json_data = article.json()
+print(json_data)
+```
+
+输出结果:
+
+```json
+{
+    "title": "My First Article",
+    "content": "Hello, World!",
+    "author": {
+        "name": "John Doe",
+        "email": "john@example.com"
+    },
+    "published_at": "2023-06-08T10:30:00.000000"
+}
+```
+
+Pydantic会自动将Article对象序列化为JSON字符串,包括嵌套的Author对象和datetime字段。
+
+## 第三步:反序列化数据
+
+当我们从客户端接收到JSON数据时,可以使用Pydantic将其反序列化为Python对象:
+
+```python
+json_data = '''
+{
+    "title": "My Second Article",
+    "content": "Hello again!",
+    "author": {
+        "name": "Jane Smith",
+        "email": "jane@example.com"
+    },
+    "published_at": "2023-06-09T12:00:00.000000"
+}
+'''
+
+article = Article.parse_raw(json_data)
+print(article)
+print(article.published_at)
+```
+
+输出结果:
+
+```
+title='My Second Article' content='Hello again!' author=Author(name='Jane Smith', email='jane@example.com') published_at=datetime.datetime(2023, 6, 9, 12, 0)
+2023-06-09 12:00:00
+```
+
+Pydantic会自动将JSON字符串反序列化为Article对象,包括将published_at字段转换为datetime对象。
+
+## 最佳实践总结
+
+1. 使用Pydantic的BaseModel定义数据模型,明确指定每个字段的类型。
+2. 对于嵌套的对象,也使用Pydantic模型来表示。
+3. 使用Config内部类的json_encoders属性自定义某些类型的JSON序列化方式。
+4. 使用模型实例的.json()方法将对象序列化为JSON字符串。
+5. 使用模型类的.parse_raw()方法将JSON字符串反序列化为对象。
+6. 利用Pydantic的自动类型转换和验证功能,确保数据的正确性。
+
+
+这种方式使得在应用程序和外部系统之间传输和存储结构化数据变得更加方便和可靠,特别适合在开发Web API或处理配置文件等场景中使用。
+
+# 还有哪些可以配合的工具
+
+
+除了 Pydantic 本身提供的功能外,还有一些工具和库可以与 Pydantic 配合使用,扩展其应用场景。下面列举几个常见的工具,并结合具体场景说明:
+
+## FastAPI
+
+FastAPI 是一个现代化的 Python Web 框架,它使用 Pydantic 进行请求和响应数据的验证和序列化。在 FastAPI 中,可以使用 Pydantic 模型来定义 API 的输入和输出数据结构。
+
+例如,我们可以定义一个用户注册的 API:
+
+```python
+from fastapi import FastAPI
+from pydantic import BaseModel, EmailStr
+
+app = FastAPI()
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+
+@app.post("/users")
+async def create_user(user: UserIn):
+    # 处理用户注册逻辑
+    return {"message": "User created"}
+```
+
+在这个例子中,我们使用 Pydantic 的 BaseModel 定义了 UserIn 模型,表示用户注册时提交的数据。FastAPI 会自动使用这个模型对请求体进行解析和验证,确保数据的正确性。
+
+## SQLAlchemy
+
+SQLAlchemy 是一个常用的 Python ORM 库,用于操作数据库。我们可以将 Pydantic 模型与 SQLAlchemy 模型配合使用,实现数据的验证和持久化。
+
+例如,我们可以定义一个 User 模型,同时用于 Pydantic 验证和 SQLAlchemy 存储:
+
+```python
+from pydantic import BaseModel
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String
+
+Base = declarative_base()
+
+class UserModel(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+
+class UserSchema(BaseModel):
+    username: str
+    email: str
+
+    class Config:
+        orm_mode = True
+```
+
+在这个例子中,我们定义了 UserModel 作为 SQLAlchemy 的数据库模型,UserSchema 作为 Pydantic 的验证模型。通过设置 Config.orm_mode 为 True,Pydantic 可以直接从 SQLAlchemy 模型实例创建 UserSchema 实例。
+
+## Typer
+
+Typer 是一个基于 Python 类型注解的命令行界面库。我们可以使用 Pydantic 模型作为 Typer 命令的参数,方便地进行参数解析和验证。
+
+例如,我们可以定义一个命令行工具,用于创建用户:
+
+```python
+import typer
+from pydantic import BaseModel, EmailStr
+
+app = typer.Typer()
+
+class User(BaseModel):
+    username: str
+    email: EmailStr
+
+@app.command()
+def create(user: User):
+    # 处理用户创建逻辑
+    print(f"Creating user: {user.username}")
+
+if __name__ == "__main__":
+    app()
+```
+
+在这个例子中,我们使用 Pydantic 的 BaseModel 定义了 User 模型,表示创建用户时需要提供的数据。Typer 会自动根据这个模型生成命令行参数,并进行解析和验证。
+
+## 总结
+
+以上是几个常见的可以与 Pydantic 配合使用的工具和库,它们在不同的场景下扩展了 Pydantic 的应用:
+
+- FastAPI: 用于 Web API 开发,使用 Pydantic 进行请求和响应数据的验证和序列化。
+- SQLAlchemy: 用于数据库操作,将 Pydantic 模型与 SQLAlchemy 模型配合使用,实现数据的验证和持久化。
+- Typer: 用于命令行工具开发,使用 Pydantic 模型作为命令行参数,方便进行参数解析和验证。
+
+除此之外,Pydantic 还可以与其他许多库和工具配合使用,如 Django、Flask、Celery 等,以实现数据验证、序列化和配置管理等功能。Pydantic 的通用性和灵活性使其成为 Python 生态系统中不可或缺的一部分。
+
+Citations:
+[1] https://blog.csdn.net/footless_bird/article/details/134183693
+[2] https://xie.infoq.cn/article/946f673d8a7ba0687c4ce3925
+[3] https://blog.csdn.net/amateurSU/article/details/136684186
+[4] https://cloud.tencent.com/developer/article/1949674
+[5] https://blog.csdn.net/cliffordl/article/details/134070532
+

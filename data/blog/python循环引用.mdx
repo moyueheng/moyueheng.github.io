@@ -1,0 +1,44 @@
+---
+title: 'python循环引用'
+date: '2024-09-26'
+tags: []
+draft: true
+summary: 
+---
+
+
+这个导入问题看起来是由于循环导入（circular import）引起的。让我们分析一下导入链：
+
+1. `app/common/driver.py` 试图从 `app.resources` 导入 `CommonListResource`
+2. `app/resources/__init__.py` 导入了 `app.resources.app_manager.one_app_role_info`
+3. `app/resources/app_manager/one_app_role_info.py` 导入了 `app.dao.db.siterec_dashboard.pangu_user_info_dao`
+4. `app/dao/db/siterec_dashboard/__init__.py` 导入了 `app.common.driver`
+
+这形成了一个循环导入的链条，导致 Python 无法正确解析导入。
+
+要解决这个问题，我们需要打破这个循环。以下是一些可能的解决方案：
+
+1. 将 `CommonListResource` 和 `CommonItemResource` 的定义移动到一个新的文件中，比如 `app/resources/common.py`，然后在 `app/common/driver.py` 中从这个新文件导入。
+
+2. 在 `app/common/driver.py` 中使用延迟导入（lazy import）。将导入语句移到需要使用这些类的函数内部。
+
+3. 重构代码结构，避免循环依赖。这可能需要重新设计一些模块的职责。
+
+作为一个快速修复，我建议尝试第二种方法。修改 `app/common/driver.py` 文件：
+
+```python:app/common/driver.py
+startLine: 34
+endLine: 35
+```
+
+将这两行改为：
+
+```python
+def get_common_resources():
+    from app.resources import CommonListResource, CommonItemResource
+    return CommonListResource, CommonItemResource
+
+# 在需要使用这些类的地方调用 get_common_resources() 函数
+```
+
+这样可以打破循环导入，但这只是一个临时解决方案。长期来看，您可能需要重新考虑项目的结构，以避免这种循环依赖。
