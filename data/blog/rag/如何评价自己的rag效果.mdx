@@ -1,0 +1,56 @@
+---
+title: '如何评价自己的rag效果'
+date: '2024-10-10'
+tags: ['RAG']
+draft: false
+summary: 
+---
+
+目前有几种比较流行和有效的RAG评估方法:
+
+1. RAGAS框架:
+
+https://github.com/explodinggradients/ragas
+
+这是一个专门用于评估RAG系统的框架,提供了一套综合性的评估指标[1][2]:
+
+- 上下文相关性(Context Relevancy):评估检索到的上下文与问题的相关程度
+- 上下文召回率(Context Recall):评估是否检索到了回答问题所需的所有必要信息
+- 忠实度(Faithfulness):评估生成答案的事实准确性
+- 答案相关性(Answer Relevance):评估生成答案与问题的相关程度
+
+RAGAS不依赖人工标注的标准答案,可以自动化评估RAG系统的性能。
+
+2. LangSmith:
+这是LangChain提供的评估工具,可以对RAG系统的各个组件进行细粒度评估[4]:
+
+- 可以评估检索器、提示模板等中间步骤
+- 支持自定义评估函数
+- 提供了一些内置的评估指标
+
+3. TruLens:
+这是另一个自动化评估框架,主要关注三个指标[5]:
+
+- 上下文相关性
+- 忠实度
+- 答案相关性 
+
+4. 人工评估:
+虽然耗时,但人工评估仍然是一种重要的评估方法,可以提供高质量的反馈[5]。
+
+5. TRIAD框架:
+这个框架将RAG评估分为三个主要部分[6]:
+
+- 上下文相关性:评估检索部分
+- 忠实度:评估生成的响应是否准确且基于检索的文档
+- 答案相关性:评估生成的响应对查询的有用程度
+
+在实践中,可以结合使用多种评估方法和指标,以全面评估RAG系统的性能。同时,根据具体应用场景选择最合适的评估方法也很重要。
+
+Citations:
+[1] https://evalscope.readthedocs.io/zh-cn/latest/blog/RAG/RAG_Evaluation.html
+[2] https://liduos.com/how-to-evaluate-rag-application.html
+[3] https://blog.csdn.net/m0_46850835/article/details/136377919
+[4] https://www.53ai.com/news/RAG/2024072859461.html
+[5] https://blog.csdn.net/DEVELOPERAA/article/details/140430751
+[6] https://myscale.com/blog/zh/ultimate-guide-to-evaluate-rag-system/
