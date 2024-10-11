@@ -1,0 +1,72 @@
+---
+title: '开源版面分析方案'
+date: '2024-10-11'
+tags: ['DP']
+draft: false
+summary: 
+---
+
+## 开源版面解析方案总结及其优劣
+
+开源版面解析方案主要用于从各种文档（如PDF、图像等）中提取和识别结构化信息。这些方案通常结合了计算机视觉和光学字符识别（OCR）技术，以实现对文档内容的高效解析。
+
+****常见开源方案****
+
+1. **360LayoutAnalysis**
+   - **特点**：专注于中文论文、研报及通用场景，基于YOLOv8模型，轻量化设计（模型大小约6.23MB）。
+   - **优点**：
+     - 速度快，适合实时处理。
+     - 针对特定领域进行了优化，能够识别段落信息。
+   - **缺点**：
+     - 对扫描文档支持不足，可能丢失结构化信息（如表格、图片）[1]。
+https://github.com/360AILAB-NLP/360LayoutAnalysis  234 star, 24年开源
+
+2. **Layout-parser**
+   - **特点**：功能全面，支持多种文档类型的解析。
+   - **优点**：
+     - 精度高，能够有效识别复杂布局中的标题、段落和表格。
+     - 适合处理结构复杂的PDF文档。
+   - **缺点**：
+     - 处理速度较慢，需要GPU加速以提高效率[2][3]。
+https://github.com/Layout-Parser/layout-parser  4.8k star, 22年开源
+
+
+3. **PaddlePaddle-ppstructure**
+   - **特点**：轻量级模型，适合快速部署。
+   - **优点**：
+     - 效果较好，能够满足一般需求。
+     - 模型较小，易于集成和使用。
+   - **缺点**：
+     - 功能相对单一，主要聚焦于版面分析[2][6]。
+https://github.com/PaddlePaddle/PaddleOCR/tree/main/ppstructure  43.1k star, 百度开源长期更新
+
+4. **Unstructured**
+   - **特点**：专注于快速处理和文本提取。
+   - **优点**：
+     - 处理速度快，适合大规模数据处理。
+   - **缺点**：
+     - 识别效果有限，尤其在复杂文档中表现不佳[2][3]。
+https://github.com/Unstructured-IO/unstructured  1.8k star, 24年开源
+
+
+
+****技术路线比较****
+
+| 技术路线        | 优点                                    | 缺点                                      |
+|-----------------|-----------------------------------------|-------------------------------------------|
+| 基于规则        | 实现简单，速度快                       | 无法处理复杂布局，泛化性差               |
+| OCR-pipeline    | 能处理扫描文档，信息提取全面           | 整体误差传播，每个模块需单独优化         |
+| OCR-FREE        | 端到端解决方案，技术前沿               | 幻觉问题严重，需要大量训练数据           |
+
+## 总结
+
+开源版面解析方案在不同场景下各有优劣。选择合适的方案应根据具体需求，如处理速度、准确性、支持的文档类型等因素进行权衡。随着技术的发展，这些工具不断优化，将为文档理解和信息提取提供更强大的支持。未来的研究方向可能包括如何提高模型的泛化能力、优化处理速度以及提升对复杂布局文档的解析能力。
+
+Citations:
+[1] https://blog.csdn.net/qihoo_tech/article/details/140170734
+[2] https://www.53ai.com/news/qianyanjishu/725.html
+[3] https://my.oschina.net/IDP/blog/11051004
+[4] https://ai.baidu.com/ai-doc/AISTUDIO/1lvkdr2yd
+[5] https://developer.volcengine.com/articles/7385013504849215526
+[6] https://www.paddlepaddle.org.cn/support/news?action=detail&id=2535
+[7] https://www.cnblogs.com/xiaoqi/p/18123888/ragflow
