@@ -1,6 +1,5 @@
 import Link from '@/components/Link'
 import Tag from '@/components/Tag'
-import { slug } from 'github-slugger'
 import tagData from 'app/tag-data.json'
 import { genPageMetadata } from 'app/seo'
 
@@ -23,9 +22,9 @@ export default async function Page() {
           {sortedTags.map((t) => {
             return (
               <div key={t} className="mb-2 mr-5 mt-2">
-                <Tag text={t} />
+                <Tag text={t} isSlugified={true} />
                 <Link
-                  href={`/tags/${slug(t)}`}
+                  href={`/tags/${encodeURIComponent(t)}`}
                   className="-ml-2 text-sm font-semibold uppercase text-gray-600 dark:text-gray-300"
                   aria-label={`View posts tagged ${t}`}
                 >

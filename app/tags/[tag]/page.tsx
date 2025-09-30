@@ -9,7 +9,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 export async function generateMetadata({ params }: { params: { tag: string } }): Promise<Metadata> {
-  const tag = decodeURI(params.tag)
+  const tag = decodeURIComponent(params.tag)
   return genPageMetadata({
     title: tag,
     description: `${siteMetadata.title} ${tag} tagged content`,
@@ -26,13 +26,13 @@ export const generateStaticParams = async () => {
   const tagCounts = tagData as Record<string, number>
   const tagKeys = Object.keys(tagCounts)
   const paths = tagKeys.map((tag) => ({
-    tag: encodeURI(tag),
+    tag: encodeURIComponent(tag),
   }))
   return paths
 }
 
 export default function TagPage({ params }: { params: { tag: string } }) {
-  const tag = decodeURI(params.tag)
+  const tag = decodeURIComponent(params.tag)
   // Capitalize first letter and convert space to dash
   const title = tag[0].toUpperCase() + tag.split(' ').join('-').slice(1)
   const filteredPosts = allCoreContent(
