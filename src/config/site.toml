@@ -1,10 +1,10 @@
 [config.site]
 title = "myhron"
-description = "myhron 的个人空间，用来放文章、项目和生活片段。"
-pageTitle = "myhron | 个人空间"
-pageDescription = "myhron 的个人空间：文章、项目和生活片段。"
+description = "myhron（莫岳恒）的个人空间：AI Agent 工程、项目与写作。"
+pageTitle = "myhron | AI Agent 工程师"
+pageDescription = "myhron（莫岳恒）的个人空间：AI Agent 工程、项目与写作。"
 url = "https://moyueheng.github.io"
-repository = "https://github.com/moyueheng/navfolio"
+repository = "https://github.com/moyueheng/moyueheng.github.io"
 footerNote = "© 2026 myhron"
 
 [config.theme]
@@ -49,7 +49,7 @@ maxResults = 6
 [config.pages.blog]
 title = "文章"
 kicker = "NOTEBOOK"
-subtitle = "长文、笔记与项目记录。"
+subtitle = "关于 Agent 工程、知识管理与个人实践。"
 note = "按时间整理的写作归档。"
 postsPerPage = 6
 # date-fns 使用的日期格式模板。
@@ -74,7 +74,7 @@ note = "可以按写作顺序连着读的系列文章。"
 [config.pages.projects]
 title = "项目"
 kicker = "PROJECT SHELF"
-subtitle = "做过的东西与记录。"
+subtitle = "做过的系统、工具与竞赛作品。"
 note = "项目入口、实现说明和发布记录。"
 
 [config.pages.vibe]
@@ -120,7 +120,7 @@ comment = true
 [config.profile]
 name = "myhron"
 handle = "@myhron"
-role = "个人空间"
+role = "AI Agent 工程师"
 email = "moyueheng@gmail.com"
 website = "https://moyueheng.github.io/"
 github = "https://github.com/moyueheng"
@@ -151,20 +151,24 @@ label = "关于"
 href = "/about"
 
 [config.home]
-doing = []
+doing = [
+  { text = "营销 Agent 平台的场景落地", mark = "01" },
+  { text = "Agent Harness 与能力包机制", mark = "02" },
+  { text = "MyhronOS 个人知识系统", mark = "03" },
+]
 
 [config.home.quote]
 text = [
-  "记录想法，整理作品，",
-  "让它们待在一个地方。",
+  "AI 负责处理信息，",
+  "人类负责形成观点。",
 ]
 
 [config.home.intro]
-title = "这里是 myhron"
+title = "你好，我是 myhron"
 name = "myhron"
 body = [
-  "这里用来放文章、项目和生活片段。",
-  "内容还在陆续整理中。",
+  "莫岳恒，AI Agent 工程师，关注 Agent Harness、企业知识库与 AIOps。",
+  "现在在网易做营销 Agent 平台，也在维护自己的知识系统 MyhronOS。",
 ]
 
 [config.home.latest]
@@ -178,19 +182,19 @@ dateArchiveBaseHref = ""
 [[config.home.navigation]]
 icon = "compass"
 title = "项目"
-subtitle = "做过的东西与记录"
+subtitle = "做过的系统与工程记录"
 href = "/projects"
 
 [[config.home.navigation]]
 icon = "pen"
 title = "文章"
-subtitle = "长文、笔记与项目记录"
+subtitle = "关于 Agent、工程与知识管理"
 href = "/blog"
 
 [[config.home.navigation]]
 icon = "briefcase"
 title = "关于"
-subtitle = "这个空间与联系方式"
+subtitle = "经历、能力与联系方式"
 href = "/about"
 
 [[config.home.navigation]]
