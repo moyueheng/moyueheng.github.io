@@ -1,5 +1,17 @@
 # Navfolio 主站 Agent 指南
 
+## 本实例
+
+当前 checkout 是 `moyueheng/navfolio`，用作 myhron 的个人站，而不是 Navfolio 上游
+生态仓库。
+
+- 个人内容放在 `src/content`；`src/docs` submodule 只用于 `docs:*` 脚本和上游手册
+  参考，不是默认发布内容。
+- 默认部署构建使用 `bun run build`，不要切回 `NAVFOLIO_CONTENT_SOURCE=docs`。
+- 站点身份、导航和首页文案在 `src/config/site.toml`。
+- 在 `content` 与 `docs` 内容源之间切换后，先清理 `.astro` 与
+  `node_modules/.astro` 缓存，否则 Astro 会混用两边的集合条目。
+
 本仓库是可运行的 Astro starter，也是 Navfolio 生态的组合根。它负责站点配置、内容
 schema、host adapter、尚未抽取的 UI、构建部署，以及各 `@navfolio/*` 包的集成。
 当前产品分支是 `v1`。
