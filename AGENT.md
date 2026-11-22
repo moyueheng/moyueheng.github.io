@@ -7,6 +7,8 @@ Navfolio 上游生态仓库。该仓库是 GitHub 用户站，发布在 `https:/
 
 - 个人内容放在 `src/content`；`src/docs` submodule 只用于 `docs:*` 脚本和上游手册
   参考，不是默认发布内容。
+- 公开内容入口是 `src/content/about.mdx`、`src/content/blog/` 与
+  `src/content/projects/`；`public/llms.txt` 是给 agent 的公开索引，栏目变化时同步更新。
 - 默认部署构建使用 `bun run build`，不要切回 `NAVFOLIO_CONTENT_SOURCE=docs`。
 - 站点身份、导航和首页文案在 `src/config/site.toml`。
 - 在 `content` 与 `docs` 内容源之间切换后，先清理 `.astro` 与
