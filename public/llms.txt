@@ -1,0 +1,28 @@
+# myhron
+
+> 莫岳恒（myhron），AI Agent 工程师，关注 Agent Harness 工程化、企业知识库 RAG 与 AIOps。现在在网易（广州）做营销 Agent 平台。
+
+## 主要页面
+
+- [关于](https://moyueheng.github.io/about/): 身份、工作经历、竞赛荣誉、技术方向与联系方式
+- [项目](https://moyueheng.github.io/projects/): 项目索引
+- [文章](https://moyueheng.github.io/blog/): 关于 Agent 工程、知识管理与个人实践的长文
+- [RSS](https://moyueheng.github.io/rss.xml): 文章订阅
+
+## 选中项目
+
+- [MyhronOS](https://moyueheng.github.io/projects/myhronos/): 把信息流整理成项目、研究和可复用知识的个人 Agent 工作系统
+- [Jarvis 运维数字员工](https://moyueheng.github.io/projects/jarvis/): 面向 AIOps 场景的企业级 Agent，覆盖 Harness、RAG、MCP 工具治理与私有化交付
+- [coding-everything](https://moyueheng.github.io/projects/coding-everything/): AI-first 工程工作流与 Agent Skills 合集
+- [Teco-RAG](https://moyueheng.github.io/projects/teco-rag/): 开放原子大赛 Teco-RAG 赛项个人冠军方案
+
+## 文章
+
+- [AI 编程的核心不是 prompt，而是环境](https://moyueheng.github.io/blog/ai-coding-environment/)
+- [把知识管理从存储系统变成行动系统](https://moyueheng.github.io/blog/myhronos-action-system/)
+
+## 联系
+
+- GitHub: https://github.com/moyueheng
+- Email: moyueheng@gmail.com
+- 技术写作: https://www.yuque.com/moyueheng
