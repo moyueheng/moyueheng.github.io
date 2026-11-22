@@ -1,0 +1,56 @@
+---
+title: 'Teco-RAG'
+description: '第二届开放原子大赛 Teco-RAG 赛项个人冠军方案：精细化路由解析与元数据增强。'
+date: '2026-11-23T00:00:00+08:00'
+draft: false
+showHeroImage: false
+icon: 'database'
+authors:
+  - name: 'myhron'
+    url: 'https://github.com/moyueheng'
+links:
+  - label: '开放原子专题报道'
+    href: 'https://www.openatom.org/journalism/detail/TYcaKWOhadMH'
+    kind: website
+tags:
+  - RAG
+  - Retrieval
+  - Competition
+comments: false
+sidebar:
+  enable: false
+  toc: false
+  relatedPosts: false
+---
+
+Teco-RAG 是第二届开放原子大赛的 RAG 赛项。我以一人团队参赛，在 207 支队伍中获得个人冠军。
+
+## 问题
+
+赛题要求同时提升语义相关性和事实相关性。单纯增加召回数量，往往会带来更多噪声；单纯优化某一类查询，又容易在另一类查询上掉分。
+
+## 方案
+
+核心是两件事：
+
+1. **精细化路由解析。** 先判断问题属于哪一类，再选择对应的检索和解析路径，而不是所有问题走同一条链路。
+2. **元数据增强。** 利用文档结构、字段和来源信息补充语义检索缺失的判断依据，让检索结果更接近事实层面的正确答案。
+
+```text
+Query
+  -> 路由解析
+  -> 检索策略选择
+  -> 元数据增强
+  -> 重排与答案组装
+```
+
+## 结果
+
+- 语义与事实相关性从 0.58 提升至 0.71。
+- 207 支队伍中排名第一，获得个人冠军。
+- 核心代码开源至 AtomGit。
+- 获[开放原子开源基金会官网专题报道](https://www.openatom.org/journalism/detail/TYcaKWOhadMH)。
+
+## 复盘
+
+这次比赛让我更确定一件事：RAG 的效果提升很少来自某个单点技巧，更多来自对问题类型的理解、对数据结构的利用，以及一套能稳定验证改动的评估方法。

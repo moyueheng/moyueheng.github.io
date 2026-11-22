@@ -1,0 +1,72 @@
+---
+title: 'coding-everything'
+description: 'AI-first 工程工作流与 Agent Skills 合集。'
+date: '2026-11-23T00:00:00+08:00'
+draft: false
+showHeroImage: false
+icon: 'terminal'
+authors:
+  - name: 'myhron'
+    url: 'https://github.com/moyueheng'
+links:
+  - label: 'GitHub'
+    href: 'https://github.com/moyueheng/coding-everything'
+    kind: github
+tags:
+  - AI Coding
+  - Agent Skills
+  - AGENTS.md
+comments: false
+sidebar:
+  enable: false
+  toc: false
+  relatedPosts: false
+---
+
+`coding-everything` 是我维护 AI-first 工程工作流的仓库。它不是提示词收藏夹，而是把「怎样让 Agent 在真实项目里稳定工作」拆成可复用的入口、能力和验证系统。
+
+## 判断
+
+AI 编程改变的首先是工程重心，而不只是写代码的速度：
+
+```text
+过去：工程师主要负责写代码
+现在：工程师越来越负责定义目标、组织上下文、设计验证、管理技术债
+```
+
+AI 降低了编码成本，同时提高了工程判断的价值。生成代码变便宜之后，每一行代码未来要承担的维护、测试和解释成本并没有消失。
+
+## 环境三层
+
+```text
+入口层：AGENTS.md / CLAUDE.md
+能力层：Skills
+验证层：Tests / CLI / CI / Review / MCP
+```
+
+- **入口层**解决「agent 进入项目后先知道什么」。
+- **能力层**解决「遇到一类任务时按什么流程做」。
+- **验证层**解决「它到底做对了没有」。
+
+Prompt 是一次对话的技巧，环境是持续交付的基础设施。
+
+## AGENTS.md 是启动协议
+
+我把 `AGENTS.md` 当作写给 agent 的操作系统启动项，而不是 README。它回答这些问题：
+
+```text
+你现在在哪里？
+这里最重要的规则是什么？
+哪些目录代表什么含义？
+改东西前先看哪里？
+不能做什么？
+做完之后如何验证？
+```
+
+分层放置时，子目录的规则会继承上层规则。这样可以把全局身份、项目约定和模块边界拆开，而不是在每个目录重复一遍。
+
+## 状态
+
+仓库持续维护中，内容包括 Agent Skills、工程规则、任务工作流和 AI Coding 的实践记录。
+
+- [github.com/moyueheng/coding-everything](https://github.com/moyueheng/coding-everything)

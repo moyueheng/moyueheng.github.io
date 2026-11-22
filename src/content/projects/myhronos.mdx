@@ -1,0 +1,73 @@
+---
+title: 'MyhronOS'
+description: '把信息流整理成项目、研究和可复用知识的个人 Agent 工作系统。'
+date: '2026-11-23T00:00:00+08:00'
+draft: false
+sticky: 1
+showHeroImage: false
+icon: 'layers-3'
+iconColor: 'var(--paper-accent)'
+authors:
+  - name: 'myhron'
+    url: 'https://github.com/moyueheng'
+tags:
+  - Knowledge Management
+  - Obsidian
+  - Agent
+  - Claude Code
+comments: false
+sidebar:
+  enable: false
+  toc: false
+  relatedPosts: false
+---
+
+MyhronOS 是我自己的知识管理与行动系统。它要解决的不是「资料放在哪里」，而是「每天流进来的信息，怎样稳定地变成项目推进、研究结论和可复用的输出」。
+
+## 问题
+
+信息从来不缺，缺的是注意力、判断和持续推进。大量内容停在收藏夹、聊天记录、浏览器标签页和文档里，最后没有进入任何项目，也没有变成任何结论。
+
+所以这个系统不围绕「收藏更多」设计，而围绕「最后产出什么」设计。
+
+## 结构
+
+```text
+输入(Input)
+  x.com / Newsletter / 论文 / IM / 网页 / 想法
+        ↓
+处理(Process)
+  00_Inbox -> 10_Daily -> 20_Project
+        ↓
+沉淀(Sediment)
+  30_Research / 40_Wiki / 50_Resources
+        ↓
+输出(Output)
+  分享 / 文章 / 决策 / 交付
+```
+
+系统分成两层：
+
+- `raw/` 与 `wiki/` 是 AI 编译层。AI 负责抓取、整理、初步编译和建立索引。
+- `30_Research/`、`40_Wiki/`、`20_Project/` 是人类沉淀层。判断、取舍和观点由我自己完成。
+
+## 三条原则
+
+1. **AI 负责处理信息，人类负责形成观点。** AI 可以做搬运、整理和初稿，但不能代替判断。
+2. **输入必须服务于输出。** 一条信息如果最终不服务于项目、研究、写作、分享或决策，大概率只是堆积。
+3. **知识层必须自己编辑。** `40_Wiki/` 和 `20_Project/` 的大部分内容由我修改和确认，并且要通过链接进入已有的知识网络。
+
+Obsidian 在这个系统里更像「健脑房」而不是仓库：构建第二大脑的目的，是强化第一大脑。
+
+## 工作流
+
+- `/life-start-my-day`：回顾昨天、检查活跃项目、生成今天的行动上下文。
+- `/life-kickoff`：把想法拆成有边界、有验收标准的项目。
+- `/life-research`：围绕一个问题做研究，并沉淀成研究资料或项目输入。
+- `/learn-llm-wiki`：把外部文章、论文和推文编译成结构化知识。
+
+这套系统也做过一次公司内部分享，主题是「AI 时代的知识管理，应该从存储系统升级为思考与行动系统」。
+
+## 公开边界
+
+MyhronOS 的完整 vault 不公开。这个站点只呈现经过筛选的介绍、方法和项目记录，不包含个人日记、公司内部资料或未脱敏的交付内容。

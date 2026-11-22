@@ -1,0 +1,75 @@
+---
+title: 'Jarvis 运维数字员工'
+description: '面向 AIOps 场景的企业级 Agent，覆盖 Harness、RAG、MCP 工具治理与私有化交付。'
+date: '2026-11-23T00:00:00+08:00'
+draft: false
+sticky: 2
+showHeroImage: false
+icon: 'sparkles'
+authors:
+  - name: 'myhron'
+    url: 'https://github.com/moyueheng'
+tags:
+  - AIOps
+  - Agent
+  - RAG
+  - MCP
+comments: false
+sidebar:
+  enable: false
+  toc: false
+  relatedPosts: false
+---
+
+Jarvis 是面向智能运维（AIOps）场景的 AI Agent「运维数字员工」。目标不是做一个只会聊天的助手，而是让 Agent 能进入真实的运维流程：理解问题、查资料、调用工具、给出判断，并把过程留痕。
+
+## 问题
+
+运维知识通常散落在告警、工单、监控面板、文档、聊天记录和个人经验里。排障时最耗时的部分，往往不是执行某个命令，而是把上下文拼起来：
+
+```text
+发生了什么？
+  -> 过去有没有类似告警？
+  -> 相关服务最近改了什么？
+  -> 这个现象对应哪份文档或哪次工单？
+  -> 下一步应该查哪个指标、调用哪个工具？
+```
+
+如果 Agent 只接入了模型，没有接入这些上下文和工具，它就只能给出一段看似合理但无法执行的建议。
+
+## 我的角色
+
+主导这条 AI Agent 的全链路建设，覆盖 Agent Harness、飞书知识库 RAG、MCP 工具治理、数据闭环与私有化交付。
+
+## 系统结构
+
+```text
+入口层
+  飞书 / IM / Web
+        ↓
+Agent Harness
+  Session / Memory / Skill / Sub-Agent
+        ↓
+工具层（MCP）
+  告警 / 日志 / 工单 / 知识库 / 监控
+        ↓
+数据与评估闭环
+  Trace / Eval / Feedback / 样本回流
+```
+
+几个关键取舍：
+
+- **工具治理优先于工具数量。** 工具需要明确的输入输出、权限边界和失败处理，否则 Agent 调得越多，系统越不可控。
+- **知识库要能回溯来源。** RAG 不只是把文档切块，还要处理元数据、权限、更新和引用。
+- **评估闭环决定能不能持续迭代。** 没有 trace 和样本回流，prompt 和流程优化只能靠感觉。
+- **私有化交付是约束条件。** 部署、数据和权限边界必须在架构设计阶段就考虑，而不是最后再补。
+
+## 结果
+
+- 内部月活 400+。
+- 绩效 A，获公司年度优秀个人。
+- 形成了一套可复用的 Agent Harness、RAG 和 MCP 工具接入经验，后续迁移到其他企业场景。
+
+## 公开边界
+
+这里只记录方法和公开可说的结果，不包含公司内部系统、客户信息、账号入口或未脱敏的运维数据。
