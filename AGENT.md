@@ -2,8 +2,8 @@
 
 ## 本实例
 
-当前 checkout 是 `moyueheng/navfolio`，用作 myhron 的个人站，而不是 Navfolio 上游
-生态仓库。
+当前 checkout 是 `moyueheng/moyueheng.github.io`，用作 myhron 的个人站，而不是
+Navfolio 上游生态仓库。该仓库是 GitHub 用户站，发布在 `https://moyueheng.github.io/`。
 
 - 个人内容放在 `src/content`；`src/docs` submodule 只用于 `docs:*` 脚本和上游手册
   参考，不是默认发布内容。
